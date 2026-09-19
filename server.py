@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Literal
 
 from mcp.server import MCPServer
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -99,12 +99,14 @@ async def health(request: Request) -> Response:
     )
 
 
-if __name__ == "__main__":
-    mcp.run(
-        transport="streamable-http",
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", "8000")),
-        streamable_http_path="/mcp",
-        stateless_http=True,
-        json_response=True,
-    )
+# Render terminates TLS and forwards traffic through its reverse proxy.
+# Disable MCP's localhost-focused DNS rebinding check explicitly at this layer;
+# the public host itself is controlled by Render.
+app = mcp.streamable_http_app(
+    streamable_http_path="/mcp",
+    stateless_http=True,
+    json_response=True,
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
+    ),
+)
