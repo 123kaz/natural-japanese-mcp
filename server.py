@@ -4,7 +4,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
@@ -12,69 +12,65 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 UPSTREAM_ROOT = Path("/opt/natural-japanese")
-LINT_SCRIPT = UPSTREAM_ROOT / "skills" / "natural-japanese" / "scripts" / "lint.py"
+SCRIPT_DIR = UPSTREAM_ROOT / "skills" / "natural-japanese" / "scripts"
 MAX_TEXT_CHARS = 200_000
 
 mcp = MCPServer(
     "natural-japanese-mcp",
     instructions=(
-        "Expose the upstream coji/natural-japanese lint.py without reimplementing "
-        "its detection logic. This server is a thin transport wrapper."
+        "Expose the pinned upstream coji/natural-japanese deterministic scripts "
+        "without reimplementing their logic. Use these tools when the "
+        "natural-japanese skill asks for lint, outline, or terminology checks."
     ),
 )
 
 
-@mcp.tool()
-def lint_japanese(
+def _run_json_script(
+    script_name: str,
     text: str,
-    genre: Literal["tech", "business", "essay"] = "tech",
-    reading_load: bool = False,
-    experimental: bool = False,
-) -> dict:
-    """Run the pinned upstream natural-japanese lint.py against Japanese Markdown text."""
+    extra_args: list[str] | None = None,
+    baseline: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if not text.strip():
         raise ValueError("text must not be empty")
     if len(text) > MAX_TEXT_CHARS:
         raise ValueError(f"text exceeds {MAX_TEXT_CHARS} characters")
-    if not LINT_SCRIPT.exists():
-        raise RuntimeError(f"upstream lint.py not found: {LINT_SCRIPT}")
 
+    script = SCRIPT_DIR / script_name
+    if not script.exists():
+        raise RuntimeError(f"upstream script not found: {script}")
+
+    baseline_path: str | None = None
     with tempfile.NamedTemporaryFile(
-        mode="w",
-        suffix=".md",
-        encoding="utf-8",
-        delete=False,
+        mode="w", suffix=".md", encoding="utf-8", delete=False
     ) as fp:
         fp.write(text)
-        temp_path = fp.name
+        text_path = fp.name
 
     try:
-        cmd = [
-            "uv",
-            "run",
-            str(LINT_SCRIPT),
-            temp_path,
-            "--json",
-            "--genre",
-            genre,
-        ]
-        if reading_load:
-            cmd.append("--reading-load")
-        if experimental:
-            cmd.append("--experimental")
+        cmd = ["uv", "run", str(script), text_path, "--json"]
+        if extra_args:
+            cmd.extend(extra_args)
+
+        if baseline is not None:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", encoding="utf-8", delete=False
+            ) as bp:
+                json.dump(baseline, bp, ensure_ascii=False)
+                baseline_path = bp.name
+            cmd.extend(["--baseline", baseline_path])
 
         proc = subprocess.run(
             cmd,
-            cwd=LINT_SCRIPT.parent,
+            cwd=SCRIPT_DIR,
             capture_output=True,
             text=True,
             timeout=120,
             check=False,
         )
-
         if proc.returncode != 0:
             raise RuntimeError(
-                "natural-japanese lint failed: "
+                f"{script_name} failed: "
                 + (proc.stderr.strip() or proc.stdout.strip() or f"exit={proc.returncode}")
             )
 
@@ -82,11 +78,43 @@ def lint_japanese(
             return json.loads(proc.stdout)
         except json.JSONDecodeError as exc:
             raise RuntimeError(
-                "natural-japanese lint returned non-JSON output: "
-                + proc.stdout[:1000]
+                f"{script_name} returned non-JSON output: " + proc.stdout[:1000]
             ) from exc
     finally:
-        Path(temp_path).unlink(missing_ok=True)
+        Path(text_path).unlink(missing_ok=True)
+        if baseline_path is not None:
+            Path(baseline_path).unlink(missing_ok=True)
+
+
+@mcp.tool()
+def lint_japanese(
+    text: str,
+    genre: Literal["tech", "business", "essay"] | None = None,
+    reading_load: bool = False,
+    experimental: bool = False,
+    baseline: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run the pinned upstream natural-japanese lint.py."""
+    args: list[str] = []
+    if genre is not None:
+        args.extend(["--genre", genre])
+    if reading_load:
+        args.append("--reading-load")
+    if experimental:
+        args.append("--experimental")
+    return _run_json_script("lint.py", text, args, baseline=baseline)
+
+
+@mcp.tool()
+def outline_japanese(text: str) -> dict[str, Any]:
+    """Run the pinned upstream natural-japanese outline.py."""
+    return _run_json_script("outline.py", text)
+
+
+@mcp.tool()
+def terms_japanese(text: str) -> dict[str, Any]:
+    """Run the pinned upstream natural-japanese terms.py."""
+    return _run_json_script("terms.py", text)
 
 
 @mcp.custom_route("/health", methods=["GET"])
@@ -94,14 +122,14 @@ async def health(request: Request) -> Response:
     return JSONResponse(
         {
             "status": "ok",
-            "upstream_lint_exists": LINT_SCRIPT.exists(),
+            "upstream_scripts": {
+                name: (SCRIPT_DIR / name).exists()
+                for name in ["lint.py", "outline.py", "terms.py", "semantic.py"]
+            },
         }
     )
 
 
-# Render terminates TLS and forwards traffic through its reverse proxy.
-# Disable MCP's localhost-focused DNS rebinding check explicitly at this layer;
-# the public host itself is controlled by Render.
 app = mcp.streamable_http_app(
     streamable_http_path="/mcp",
     stateless_http=True,
