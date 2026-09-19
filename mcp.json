@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "natural-japanese-mcp": {
+      "type": "streamable-http",
+      "url": "https://natural-japanese-mcp.onrender.com/mcp"
+    }
+  }
+}
