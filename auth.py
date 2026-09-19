@@ -6,6 +6,7 @@ from typing import Any
 
 import jwt
 from jwt import PyJWKClient
+from jwt.exceptions import PyJWTError
 from mcp.server.auth.provider import AccessToken, TokenVerifier
 from mcp.server.auth.settings import AuthSettings
 from pydantic import AnyHttpUrl
@@ -72,7 +73,7 @@ class Auth0TokenVerifier(TokenVerifier):
                 audience=self._config.audience,
                 issuer=self._config.issuer_url,
             )
-        except Exception:
+        except PyJWTError:
             return None
 
         raw_scope = claims.get("scope", "")
