@@ -1,0 +1,20 @@
+{
+  "name": "natural-japanese-local",
+  "interface": {
+    "displayName": "Natural Japanese Local"
+  },
+  "plugins": [
+    {
+      "name": "natural-japanese",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
