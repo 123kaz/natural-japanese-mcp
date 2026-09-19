@@ -1,3 +1,11 @@
+interface:
+  display_name: "Natural Japanese"
+  short_description: "自然で読みやすい日本語へ執筆・推敲する"
+  default_prompt: "自然な日本語になるように、natural-japanese の工程で執筆・推敲してください。"
+
+policy:
+  allow_implicit_invocation: true
+
 dependencies:
   tools:
     - type: "mcp"
