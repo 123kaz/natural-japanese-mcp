@@ -2,7 +2,31 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "natural-japanese",
   "version": "0.1.0",
-  "description": "Natural Japanese writing and revision workflow based on coji/natural-japanese.",
+  "description": "Natural Japanese writing and revision workflow based on coji/natural-japanese, with deterministic checks exposed through a remote MCP server.",
+  "author": {
+    "name": "123kaz"
+  },
   "repository": "https://github.com/123kaz/natural-japanese-mcp",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "japanese",
+    "writing",
+    "revision",
+    "natural-language",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Natural Japanese",
+        "shortDescription": "自然で読みやすい日本語へ執筆・推敲する",
+        "longDescription": "coji/natural-japanese のワークフローと機械検査を、ChatGPTから利用するためのPluginです。",
+        "developerName": "123kaz",
+        "category": "Productivity",
+        "capabilities": [
+          "Read"
+        ]
+      }
+    }
+  }
 }
