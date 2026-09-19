@@ -64,6 +64,36 @@ the corresponding tool was not called. Full-mode subagent review and
 - Transport: Streamable HTTP
 - Deployment: Render Web Service
 
+### OAuth 2.1 / Auth0
+
+The remote MCP is configured as an OAuth 2.1 resource server. Auth0 is the
+authorization server; this service validates Auth0-issued RS256 access tokens
+before any MCP tool runs.
+
+Required Auth0 configuration:
+
+- Create an Auth0 API whose Identifier is exactly
+  `https://natural-japanese-mcp.onrender.com/mcp`.
+- Keep the API signing algorithm at `RS256`.
+- Add the API permission `natural-japanese:use`.
+- In Auth0 tenant settings, enable the Resource Parameter Compatibility Profile
+  so MCP RFC 8707 `resource` requests map to the API audience.
+- Use ChatGPT's CIMD client registration flow. No client secret is stored in
+  this MCP service.
+
+Required Render environment variables:
+
+- `AUTH0_ISSUER_URL`: Auth0 tenant issuer, for example
+  `https://example.jp.auth0.com/`.
+- `MCP_PUBLIC_URL`: optional; defaults to
+  `https://natural-japanese-mcp.onrender.com/mcp`.
+- `AUTH0_AUDIENCE`: optional; defaults to `MCP_PUBLIC_URL` and must equal it.
+- `MCP_REQUIRED_SCOPE`: optional; defaults to `natural-japanese:use`.
+
+The server validates token signature, issuer, audience, expiry, and required
+scope. Startup fails closed when `AUTH0_ISSUER_URL` is missing or when the
+configured audience does not match the MCP public resource URL.
+
 ### `lint_japanese`
 
 Runs the pinned upstream `lint.py`.
@@ -135,13 +165,18 @@ Then reload the ChatGPT desktop app, open the Plugin Directory, select
 
 ## Privacy and security
 
-The current MCP endpoint uses no authentication. Input text sent to an MCP tool
-is transmitted to the Render-hosted service and processed in a temporary file,
-which the wrapper deletes after the tool call.
+Input text sent to an MCP tool is transmitted over HTTPS to the Render-hosted
+service and processed in a temporary file, which the wrapper deletes after the
+tool call. The application does not intentionally persist input text or emit it
+to application logs.
 
-Do not treat the unauthenticated deployment as a security boundary. Add
-authentication and review hosting/privacy requirements before exposing the
-service broadly or relying on it for sensitive material.
+The MCP endpoint requires an Auth0-issued OAuth 2.1 bearer token and validates
+its signature, issuer, audience, expiry, and `natural-japanese:use` scope before
+tool execution.
+
+Render remains the hosting provider and therefore processes request data while
+serving the MCP endpoint. This deployment does not claim provider-level
+zero-retention of submitted text.
 
 ## License
 
