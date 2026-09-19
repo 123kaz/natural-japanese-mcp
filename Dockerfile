@@ -8,7 +8,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir "mcp>=2,<3" "uv>=0.8,<1"
+RUN pip install --no-cache-dir "mcp>=2,<3" "uv>=0.8,<1" "uvicorn>=0.30,<1"
 
 ARG NATURAL_JAPANESE_COMMIT=9a78a42964096da509b8f3e011f0085a5f080151
 RUN git clone https://github.com/coji/natural-japanese.git /opt/natural-japanese \
@@ -16,6 +16,7 @@ RUN git clone https://github.com/coji/natural-japanese.git /opt/natural-japanese
     && git checkout "$NATURAL_JAPANESE_COMMIT" \
     && rm -rf .git
 
+# Resolve the exact dependencies declared by upstream lint.py at image build time.
 RUN uv run /opt/natural-japanese/skills/natural-japanese/scripts/lint.py --help >/dev/null
 
 WORKDIR /app
@@ -23,4 +24,4 @@ COPY server.py /app/server.py
 
 EXPOSE 8000
 
-CMD ["python", "server.py"]
+CMD ["sh", "-c", "uvicorn server:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
