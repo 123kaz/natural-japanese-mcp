@@ -16,8 +16,9 @@ RUN git clone https://github.com/coji/natural-japanese.git /opt/natural-japanese
     && git checkout "$NATURAL_JAPANESE_COMMIT" \
     && rm -rf .git
 
-# Resolve the exact dependencies declared by upstream lint.py at image build time.
-RUN uv run /opt/natural-japanese/skills/natural-japanese/scripts/lint.py --help >/dev/null
+RUN uv run /opt/natural-japanese/skills/natural-japanese/scripts/lint.py --help >/dev/null \
+    && uv run /opt/natural-japanese/skills/natural-japanese/scripts/outline.py --help >/dev/null \
+    && uv run /opt/natural-japanese/skills/natural-japanese/scripts/terms.py --help >/dev/null
 
 WORKDIR /app
 COPY server.py /app/server.py
