@@ -1,0 +1,20 @@
+{
+  "name": "natural-japanese",
+  "version": "0.1.0",
+  "description": "Natural Japanese writing and revision workflow based on coji/natural-japanese.",
+  "author": {
+    "name": "123kaz"
+  },
+  "skills": "./skills/",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "Natural Japanese",
+    "shortDescription": "自然で読みやすい日本語へ執筆・推敲する",
+    "longDescription": "coji/natural-japanese のワークフローを、登録済みの natural-japanese-mcp と組み合わせてChatGPTで利用します。",
+    "developerName": "123kaz",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ]
+  }
+}
