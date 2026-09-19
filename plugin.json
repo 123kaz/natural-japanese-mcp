@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "natural-japanese",
+  "version": "0.1.0",
+  "description": "Natural Japanese writing and revision workflow based on coji/natural-japanese.",
+  "repository": "https://github.com/123kaz/natural-japanese-mcp",
+  "license": "MIT"
+}
