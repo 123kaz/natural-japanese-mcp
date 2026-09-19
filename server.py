@@ -99,47 +99,6 @@ async def health(request: Request) -> Response:
     )
 
 
-@mcp.custom_route("/selftest", methods=["GET"])
-async def selftest(request: Request) -> Response:
-    """Temporary smoke test: execute the pinned upstream lint.py inside Render."""
-    sample = "これは非常に重要と言えるでしょう。"
-    with tempfile.NamedTemporaryFile(
-        mode="w",
-        suffix=".md",
-        encoding="utf-8",
-        delete=False,
-    ) as fp:
-        fp.write(sample)
-        temp_path = fp.name
-
-    try:
-        proc = subprocess.run(
-            [
-                "uv",
-                "run",
-                str(LINT_SCRIPT),
-                temp_path,
-                "--json",
-                "--genre",
-                "tech",
-            ],
-            cwd=LINT_SCRIPT.parent,
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
-        payload = {
-            "status": "ok" if proc.returncode == 0 else "error",
-            "returncode": proc.returncode,
-            "stdout": proc.stdout[:5000],
-            "stderr": proc.stderr[:2000],
-        }
-        return JSONResponse(payload, status_code=200 if proc.returncode == 0 else 500)
-    finally:
-        Path(temp_path).unlink(missing_ok=True)
-
-
 # Render terminates TLS and forwards traffic through its reverse proxy.
 # Disable MCP's localhost-focused DNS rebinding check explicitly at this layer;
 # the public host itself is controlled by Render.
