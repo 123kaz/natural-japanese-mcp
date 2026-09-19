@@ -72,6 +72,7 @@ class Auth0TokenVerifier(TokenVerifier):
                 algorithms=["RS256"],
                 audience=self._config.audience,
                 issuer=self._config.issuer_url,
+                options={"require": ["exp", "iss", "aud"]},
             )
         except PyJWTError:
             return None
