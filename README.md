@@ -38,6 +38,25 @@ The upstream Skill snapshot is also preserved without modification under
 
 `vendor/coji-natural-japanese/UPSTREAM_COMMIT` records the pinned revision.
 
+## Quick runtime for Web/mobile
+
+The primary runtime is now `@natural-japanese-mcp` itself. It reproduces the
+upstream quick-mode execution discipline without pretending to be an OpenAI
+Skill:
+
+- `natural_japanese_quick_workflow`: must be called before Japanese
+  write/rewrite/score work; returns the pinned upstream quick-mode excerpts and
+  the required execution sequence.
+- `natural_japanese_guidance`: returns one pinned upstream reference file only
+  when judgment needs it.
+- `lint_japanese`: mandatory before and after a quick rewrite.
+- `outline_japanese` and `terms_japanese`: available, but not mandatory in
+  quick mode.
+
+The MCP server instructions explicitly prohibit claiming that a check ran when
+the corresponding tool was not called. Full-mode subagent review and
+`semantic.py` are not simulated by this runtime.
+
 ## MCP
 
 - Endpoint: `https://natural-japanese-mcp.onrender.com/mcp`
