@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from mcp.types import ToolAnnotations
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -86,7 +87,14 @@ def _run_json_script(
             Path(baseline_path).unlink(missing_ok=True)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        read_only_hint=True,
+        open_world_hint=False,
+        destructive_hint=False,
+        idempotent_hint=True,
+    )
+)
 def lint_japanese(
     text: str,
     genre: Literal["tech", "business", "essay"] | None = None,
@@ -105,13 +113,27 @@ def lint_japanese(
     return _run_json_script("lint.py", text, args, baseline=baseline)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        read_only_hint=True,
+        open_world_hint=False,
+        destructive_hint=False,
+        idempotent_hint=True,
+    )
+)
 def outline_japanese(text: str) -> dict[str, Any]:
     """Run the pinned upstream natural-japanese outline.py."""
     return _run_json_script("outline.py", text)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        read_only_hint=True,
+        open_world_hint=False,
+        destructive_hint=False,
+        idempotent_hint=True,
+    )
+)
 def terms_japanese(text: str) -> dict[str, Any]:
     """Run the pinned upstream natural-japanese terms.py."""
     return _run_json_script("terms.py", text)
