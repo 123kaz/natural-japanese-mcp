@@ -75,19 +75,35 @@ exposed through the current Render Free MCP deployment. It requires a heavyweigh
 embedding stack and roughly 1 GB of initial model download. The adapted Skill must
 state that `exp` semantic analysis is unavailable rather than simulate it.
 
-## Plugin package
+## Plugin packages
 
-The portable Agent Plugins package is rooted in this repository:
+This repository keeps two packaging forms separate.
+
+### Portable package
+
+The repository root contains the portable Agent Plugins form:
 
 - `plugin.json`
 - `mcp.json`
 - `skills/natural-japanese/`
 
-A test marketplace catalog is included at:
+This form declares the remote MCP URL directly.
 
-```text
-.agents/plugins/marketplace.json
-```
+### OpenAI local test package
+
+`plugins/natural-japanese/` contains an OpenAI-compatible local test package:
+
+- `.codex-plugin/plugin.json`
+- `.app.json`
+- `skills/natural-japanese/`
+
+It references the already registered ChatGPT app
+`asdk_app_6aae03fa144081919c3e1e990516df87` instead of declaring another
+`mcp.json` inside the test package. This keeps the local package tied to the
+MCP connection already verified in ChatGPT.
+
+The marketplace catalog at `.agents/plugins/marketplace.json` points to this
+OpenAI test package.
 
 For local desktop testing, register this repository as a marketplace:
 
