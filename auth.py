@@ -14,6 +14,7 @@ from pydantic import AnyHttpUrl
 
 
 logger = logging.getLogger("natural_japanese_mcp.auth")
+logger.setLevel(logging.INFO)
 
 DEFAULT_RESOURCE_SERVER_URL = "https://natural-japanese-mcp.onrender.com/mcp"
 DEFAULT_REQUIRED_SCOPE = "natural-japanese:use"
