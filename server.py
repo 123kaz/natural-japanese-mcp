@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from typing import Any, Literal
 
-from auth import Auth0TokenVerifier, build_auth_settings, load_oauth_config
 from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
@@ -38,12 +37,8 @@ GUIDANCE_FILES = {
     "doctype_slide": REFERENCE_DIR / "doctypes" / "slide.md",
 }
 
-oauth_config = load_oauth_config()
-
 mcp = MCPServer(
     "natural-japanese-mcp",
-    token_verifier=Auth0TokenVerifier(oauth_config),
-    auth=build_auth_settings(oauth_config),
     instructions=(
         "Natural Japanese quick runtime. 日本語文書の新規執筆・推敲・自然化・AI臭診断では、"
         "本文を書く前に必ず natural_japanese_quick_workflow を呼ぶ。rewrite では原文に "
