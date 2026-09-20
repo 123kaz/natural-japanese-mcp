@@ -38,11 +38,21 @@ The upstream Skill snapshot is also preserved without modification under
 
 `vendor/coji-natural-japanese/UPSTREAM_COMMIT` records the pinned revision.
 
-## Quick runtime for Web/mobile
+## Quick MCP runtime
 
-The primary runtime is now `@natural-japanese-mcp` itself. It reproduces the
+The primary MCP runtime is `@natural-japanese-mcp` itself. It reproduces the
 upstream quick-mode execution discipline without pretending to be an OpenAI
-Skill:
+Skill.
+
+ChatGPT availability is plan- and surface-dependent. As verified in September
+2026, ChatGPT Plus is not listed by OpenAI as supporting custom MCP apps.
+ChatGPT Pro supports custom MCP connections with read/fetch permissions, while
+full MCP support is available to Business and Enterprise/Edu. MCP apps are
+documented as Web-only. The Render service may therefore be healthy and fully
+authenticated while no MCP actions are exposed in a Plus chat.
+
+When the current ChatGPT plan/surface does not expose this custom MCP, do not
+claim that its checks ran.
 
 - `natural_japanese_quick_workflow`: must be called before Japanese
   write/rewrite/score work; returns the pinned upstream quick-mode excerpts and
@@ -78,8 +88,12 @@ Required Auth0 configuration:
 - Add the API permission `natural-japanese:use`.
 - In Auth0 tenant settings, enable the Resource Parameter Compatibility Profile
   so MCP RFC 8707 `resource` requests map to the API audience.
-- Use ChatGPT's CIMD client registration flow. No client secret is stored in
-  this MCP service.
+- Enable Auth0 Client ID Metadata Document (CIMD) registration.
+- Import/register the ChatGPT-provided CIMD client metadata URL in Auth0 when
+  Auth0 does not automatically recognize the third-party client.
+- In the API's Application Access settings, grant the ChatGPT third-party
+  application user-delegated access to `natural-japanese:use`.
+- No client secret is stored in this MCP service.
 
 Required Render environment variables:
 
@@ -147,14 +161,18 @@ This form declares the remote MCP URL directly.
 - `skills/natural-japanese/`
 
 It references the already registered ChatGPT app
-`asdk_app_6aae03fa144081919c3e1e990516df87` instead of declaring another
+`asdk_app_6aaf26c0ea2881919a46b7fd45b35c74` instead of declaring another
 `mcp.json` inside the test package. This keeps the local package tied to the
 MCP connection already verified in ChatGPT.
 
 The marketplace catalog at `.agents/plugins/marketplace.json` points to this
 OpenAI test package.
 
-For local desktop testing, register this repository as a marketplace:
+The local plugin package can still be registered as a marketplace for Skill
+testing. App-backed MCP action availability follows ChatGPT's current plan and
+surface support.
+
+For local desktop Skill testing, register this repository as a marketplace:
 
 ```text
 codex plugin marketplace add 123kaz/natural-japanese-mcp --ref main
