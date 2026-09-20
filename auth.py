@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -11,6 +12,8 @@ from mcp.server.auth.provider import AccessToken, TokenVerifier
 from mcp.server.auth.settings import AuthSettings
 from pydantic import AnyHttpUrl
 
+
+logger = logging.getLogger("natural_japanese_mcp.auth")
 
 DEFAULT_RESOURCE_SERVER_URL = "https://natural-japanese-mcp.onrender.com/mcp"
 DEFAULT_REQUIRED_SCOPE = "natural-japanese:use"
@@ -74,7 +77,8 @@ class Auth0TokenVerifier(TokenVerifier):
                 issuer=self._config.issuer_url,
                 options={"require": ["exp", "iss", "aud"]},
             )
-        except PyJWTError:
+        except PyJWTError as exc:
+            logger.warning("OAuth token rejected: %s", exc.__class__.__name__)
             return None
 
         raw_scope = claims.get("scope", "")
@@ -84,6 +88,8 @@ class Auth0TokenVerifier(TokenVerifier):
             scopes = [str(scope) for scope in raw_scope if scope]
         else:
             scopes = []
+
+        logger.info("OAuth token accepted: scopes=%s audience=%s", scopes, claims.get("aud"))
 
         client_id = claims.get("azp") or claims.get("client_id") or claims.get("sub")
         if not isinstance(client_id, str) or not client_id:
