@@ -78,6 +78,9 @@ the corresponding tool was not called. Full-mode subagent review and
 
 The current remote MCP endpoint does not require authentication.
 
+Use this unauthenticated deployment only for writing-related work. Do not use it
+for tasks outside writing activities.
+
 Do not treat this deployment as a security boundary. Anyone who can reach the
 public endpoint may attempt to call the exposed read-only tools. Do not send
 secrets, credentials, or other sensitive material through this deployment.
