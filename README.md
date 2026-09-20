@@ -74,39 +74,16 @@ the corresponding tool was not called. Full-mode subagent review and
 - Transport: Streamable HTTP
 - Deployment: Render Web Service
 
-### OAuth 2.1 / Auth0
+### Authentication
 
-The remote MCP is configured as an OAuth 2.1 resource server. Auth0 is the
-authorization server; this service validates Auth0-issued RS256 access tokens
-before any MCP tool runs.
+The current remote MCP endpoint does not require authentication.
 
-Required Auth0 configuration:
+Use this unauthenticated deployment only for writing-related work. Do not use it
+for tasks outside writing activities.
 
-- Create an Auth0 API whose Identifier is exactly
-  `https://natural-japanese-mcp.onrender.com/mcp`.
-- Keep the API signing algorithm at `RS256`.
-- Add the API permission `natural-japanese:use`.
-- In Auth0 tenant settings, enable the Resource Parameter Compatibility Profile
-  so MCP RFC 8707 `resource` requests map to the API audience.
-- Enable Auth0 Client ID Metadata Document (CIMD) registration.
-- Import/register the ChatGPT-provided CIMD client metadata URL in Auth0 when
-  Auth0 does not automatically recognize the third-party client.
-- In the API's Application Access settings, grant the ChatGPT third-party
-  application user-delegated access to `natural-japanese:use`.
-- No client secret is stored in this MCP service.
-
-Required Render environment variables:
-
-- `AUTH0_ISSUER_URL`: Auth0 tenant issuer, for example
-  `https://example.jp.auth0.com/`.
-- `MCP_PUBLIC_URL`: optional; defaults to
-  `https://natural-japanese-mcp.onrender.com/mcp`.
-- `AUTH0_AUDIENCE`: optional; defaults to `MCP_PUBLIC_URL` and must equal it.
-- `MCP_REQUIRED_SCOPE`: optional; defaults to `natural-japanese:use`.
-
-The server validates token signature, issuer, audience, expiry, and required
-scope. Startup fails closed when `AUTH0_ISSUER_URL` is missing or when the
-configured audience does not match the MCP public resource URL.
+Do not treat this deployment as a security boundary. Anyone who can reach the
+public endpoint may attempt to call the exposed read-only tools. Do not send
+secrets, credentials, or other sensitive material through this deployment.
 
 ### `lint_japanese`
 
@@ -188,9 +165,8 @@ service and processed in a temporary file, which the wrapper deletes after the
 tool call. The application does not intentionally persist input text or emit it
 to application logs.
 
-The MCP endpoint requires an Auth0-issued OAuth 2.1 bearer token and validates
-its signature, issuer, audience, expiry, and `natural-japanese:use` scope before
-tool execution.
+The MCP endpoint is unauthenticated. Input text is transmitted over HTTPS, but
+the endpoint itself does not identify or authorize callers.
 
 Render remains the hosting provider and therefore processes request data while
 serving the MCP endpoint. This deployment does not claim provider-level
