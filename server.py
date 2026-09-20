@@ -274,6 +274,7 @@ def terms_japanese(text: str) -> dict[str, Any]:
 
 @mcp.custom_route("/health", methods=["GET"])
 async def health(request: Request) -> Response:
+    tools = await mcp.list_tools()
     return JSONResponse(
         {
             "status": "ok",
@@ -283,6 +284,8 @@ async def health(request: Request) -> Response:
                 name: (SCRIPT_DIR / name).exists()
                 for name in ["lint.py", "outline.py", "terms.py", "semantic.py"]
             },
+            "registered_tools": [tool.name for tool in tools],
+            "registered_tool_count": len(tools),
         }
     )
 
